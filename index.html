@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Materia Medica AI – Guided Remedy Finder</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f7f6;--card:#fff;--ink:#16302b;--mut:#5d7a74;--acc:#0f8a72;--acc2:#e3f4f0;--line:#d8e6e2;--warn:#fdecea;--warnink:#a12a1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1917;--card:#16262a;--ink:#e3f1ee;--mut:#8fb0a9;--acc:#2fc2a3;--acc2:#1a3a37;--line:#26403f;--warn:#3a1e1b;--warnink:#ffb4aa}}
+:root[data-theme="dark"]{--bg:#0e1917;--card:#16262a;--ink:#e3f1ee;--mut:#8fb0a9;--acc:#2fc2a3;--acc2:#1a3a37;--line:#26403f;--warn:#3a1e1b;--warnink:#ffb4aa}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:680px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+header{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);background:var(--card)}
+.logo{width:36px;height:36px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:20px}
+header h1{font-size:17px;margin:0}header p{margin:0;font-size:12px;color:var(--mut)}
+.disc{font-size:12px;background:var(--acc2);padding:8px 16px;border-bottom:1px solid var(--line)}
+#prog{height:4px;background:var(--line)}#bar{height:100%;width:0;background:var(--acc);transition:width .3s}
+main{flex:1;padding:20px 16px}
+.q{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+h2{font-size:21px;margin:4px 0 4px}.hint{color:var(--mut);font-size:14px;margin:0 0 14px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:13px 14px;font:inherit;cursor:pointer;display:flex;gap:10px;align-items:center}
+.opt small{display:block;color:var(--mut);font-size:12.5px}
+.opt:hover{border-color:var(--acc)}.opt.sel{border-color:var(--acc);background:var(--acc2)}
+.nav{display:flex;gap:8px;margin-top:16px}
+.btn{border:0;background:var(--acc);color:#fff;border-radius:12px;padding:12px 20px;font:inherit;font-weight:600;cursor:pointer}
+.btn.g{background:none;border:1px solid var(--line);color:var(--mut)}.btn:disabled{opacity:.45}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.card h3{margin:0 0 2px;font-size:18px}.pct{float:right;color:var(--acc);font-weight:700}
+.card p{margin:6px 0;font-size:14.5px}.lbl{font-weight:600;color:var(--acc)}
+
+.ai{white-space:pre-wrap;font-size:14.5px}
+.fit{font-size:12px;border-radius:99px;padding:2px 8px;background:var(--acc2);color:var(--acc);margin-left:6px;font-weight:600}.mode{width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;font:inherit;cursor:pointer;margin-bottom:10px}.mode:hover{border-color:var(--acc)}.mode b{font-size:18px;display:block}.mode span{color:var(--mut);font-size:14px}.tags{font-size:12.5px;color:var(--mut);margin:0 0 12px}
+.tickcss{}
+#msel{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;margin-top:4px}.mode{padding:12px 14px!important}.mode b{font-size:17px!important}
+#tick{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);z-index:9;padding-bottom:env(safe-area-inset-bottom,0px)}
+#tickin{max-width:680px;margin:0 auto}
+#tickbar{display:flex;gap:8px;align-items:flex-start;padding:8px 14px;font-size:12.5px;cursor:pointer}
+.live{flex:none;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-top:5px;animation:b 1.4s infinite}
+#tickmsg{flex:1;line-height:1.4;max-height:4.2em;overflow:hidden}
+.flash{animation:fl .45s}@keyframes fl{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#tickbtn{flex:none;border:1px solid var(--line);background:none;color:var(--mut);border-radius:8px;padding:2px 8px;font-size:12px;cursor:pointer}
+#ticklog{display:none;max-height:42vh;overflow-y:auto;padding:4px 14px 6px;font-size:12.5px;border-bottom:1px solid var(--line)}
+#tick.open #ticklog{display:block}
+.tl{padding:5px 0;border-top:1px solid var(--line)}.tl:first-child{border-top:0}.tl.rec,.tl.skip,.tl.nav{color:var(--mut)}.tl.sys{color:var(--acc)}.tl.rank{font-weight:600}
+main{padding-bottom:110px!important}
+</style>
+</head>
+<body>
+<div id="app">
+<header><div class="logo">✚</div><div><h1>Materia Medica AI</h1><p>Acute &amp; chronic consultation aid</p></div></header>
+<div class="disc">Consultation aid for homeopathy practitioners and students. It supports, and does not replace, case-taking and clinical judgement. Studies show no effect of homeopathy beyond placebo.</div>
+<div id="prog"><div id="bar"></div></div>
+<main id="main"></main>
+</div>
+<div id="tick"><div id="tickin"><div id="ticklog"></div><div id="tickbar"><span class="live"></span><span id="tickmsg">Ready.</span><button id="tickbtn"><span id="tickcount">0</span> steps &#9650;</button></div></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const O=(k,l,s)=>({k,l,s});
+const ASTEPS=[
+ {id:'c',t:'What is the presenting complaint?',o:[O('head','Head','headache, migraine'),O('cold','Cold, nose, throat or cough'),O('digest','Stomach and digestion','nausea, indigestion, cramps, diarrhoea'),O('fever','Fever, flu or aches'),O('injury','Injury','bruise, sprain, strain'),O('joints','Joints and muscles','stiffness, soreness'),O('skin','Skin','rash, itching, stings, boils'),O('emotion','Emotional or sleep','grief, stress, anxiety, insomnia')]},
+ {id:'s',t:'How does the patient describe the sensation?',o:[O('throb','Throbbing or pulsing'),O('sharp','Sharp, stitching or splinter-like'),O('burn','Burning or stinging'),O('dull','Dull, heavy or weak'),O('bruise','Bruised and sore to touch'),O('cramp','Cramping, tight or knotted')]},
+ {id:'o',t:'What was the onset or causation?',o:[O('sudden','Suddenly and intensely'),O('gradual','Gradually over days'),O('cold','After cold, wind or damp'),O('injury','After injury or overexertion'),O('emotion','After grief, shock or emotional strain'),O('food','After food, drink or overindulgence')]},
+ {id:'b',multi:1,t:'What ameliorates?',h:'Select all that apply, or skip if none reported.',o:[O('warm','Warmth'),O('cold','Cool or open air'),O('rest','Rest or lying still'),O('move','Gentle movement'),O('press','Firm pressure'),O('company','Company or comfort')]},
+ {id:'w',multi:1,t:'What aggravates?',h:'Select all that apply, or skip if none reported.',o:[O('warm','Heat or stuffy rooms'),O('cold','Cold or draughts'),O('move','Movement'),O('touch','Touch or jarring'),O('night','Night'),O('company','Company or consolation')]},
+ {id:'m',t:'What is the mental state of the patient?',o:[O('anx','Anxious or restless'),O('irr','Irritable or impatient'),O('weep','Weepy and wanting comfort'),O('weak','Weak, heavy or drowsy'),O('alone','Wants to be left alone'),O('calm','Calm, just uncomfortable')]},
+ {id:'t',t:'What is the thirst like?',o:[O('high','Very thirsty for large drinks'),O('sips','Thirsty for small sips'),O('none','Not thirsty')]}
+];
+const AR=[
+ {n:'Aconitum napellus',k:'Sudden, intense onset after cold dry wind or a fright; anxiety, restlessness and thirst for cold water.',m:'Worse: night, cold dry wind, fright. Better: open air.',u:'early colds and fevers',c:['cold','fever'],s:['sharp','burn'],o:['sudden','cold'],b:['cold'],w:['night','warm'],mo:['anx'],t:['high']},
+ {n:'Belladonna',k:'Sudden, violent, hot, red and throbbing; flushed face, sensitive to light and jarring, usually thirstless.',m:'Worse: touch, jar, light, 3pm. Better: rest in a dark room.',u:'throbbing headaches, fevers, red sore throats',c:['head','fever','cold'],s:['throb','burn'],o:['sudden'],b:['rest'],w:['move','touch','night'],mo:['irr'],t:['none']},
+ {n:'Bryonia alba',k:'Stitching pains worse for the slightest movement; dry mouth, great thirst, irritable and wants to be left alone.',m:'Worse: motion, warmth. Better: rest, firm pressure, cool.',u:'headaches, dry coughs, stiff joints, flu with aching',c:['head','joints','cold','fever'],s:['sharp'],o:['gradual'],b:['rest','press','cold'],w:['move','warm'],mo:['irr','alone'],t:['high']},
+ {n:'Gelsemium sempervirens',k:'Heavy, weak, drowsy and trembling; heavy eyelids, little thirst; ailments from anticipation or bad news.',m:'Worse: damp weather, emotion. Better: rest, sweating.',u:'flu, back-of-head headaches, exam nerves',c:['fever','head','cold'],s:['dull'],o:['gradual','emotion'],b:['rest'],w:['cold'],mo:['weak'],t:['none']},
+ {n:'Nux vomica',k:'Irritable, driven and chilly; upset from rich food, coffee, alcohol or overwork; ineffectual urging.',m:'Worse: morning, cold, noise, stimulants. Better: warmth, rest.',u:'indigestion, nausea, hangover headaches',c:['digest','head','cold'],s:['cramp','sharp'],o:['food'],b:['warm','rest'],w:['cold','touch'],mo:['irr'],t:['sips']},
+ {n:'Pulsatilla',k:'Mild, weepy and clingy; changeable symptoms, thick bland yellow-green discharges, little thirst.',m:'Worse: heat, stuffy rooms, rich food. Better: open air, gentle motion, consolation.',u:'late colds, earaches, indigestion from fatty food',c:['cold','digest'],s:['dull','cramp'],o:['gradual','food'],b:['cold','move','company'],w:['warm'],mo:['weep'],t:['none']},
+ {n:'Arsenicum album',k:'Anxious, restless, fastidious and chilly; burning pains eased by warmth, sips of water, weakness out of proportion.',m:'Worse: midnight to 2am, cold, spoiled food. Better: warmth.',u:'food-poisoning-type upsets, watery colds',c:['digest','cold'],s:['burn','cramp'],o:['food'],b:['warm'],w:['cold','night'],mo:['anx'],t:['sips']},
+ {n:'Allium cepa',k:'Profuse watery, acrid nasal discharge that burns the lip while the eyes stream bland tears; sneezing.',m:'Worse: warm rooms, evenings. Better: open air.',u:'early colds and hay fever',c:['cold'],s:['burn'],o:['cold'],b:['cold'],w:['warm'],mo:['calm'],t:['none']},
+ {n:'Rhus toxicodendron',k:'Stiff and painful on first movement, easing with continued motion; restless, tossing for comfort.',m:'Worse: damp cold, first motion, rest, night. Better: warmth, motion, hot bath.',u:'stiff joints, sprains, itchy blistering rashes',c:['joints','skin','injury'],s:['sharp','dull'],o:['cold','injury'],b:['warm','move'],w:['cold','rest','night'],mo:['anx'],t:['high']},
+ {n:'Arnica montana',k:'Bruised, sore feeling as if beaten; dreads being touched; says "I am fine" after injury.',m:'Worse: touch, jar, motion. Better: lying still.',u:'bruises, muscle soreness after injury or exertion',c:['injury','joints'],s:['bruise'],o:['injury'],b:['rest'],w:['touch','move'],mo:['calm','alone'],t:['none']},
+ {n:'Ignatia amara',k:'Acute grief or emotional shock; sighing, lump in the throat, contradictory symptoms, mood swings.',m:'Worse: emotion, coffee, tobacco. Better: deep breathing, pressure, changing position.',u:'grief, emotional upset, stress-related sleeplessness',c:['emotion','head'],s:['cramp','sharp'],o:['emotion'],b:['move','press'],w:['cold'],mo:['weep','anx'],t:['none']},
+ {n:'Apis mellifica',k:'Stinging, burning pains with rosy, puffy swelling; thirstless; intolerant of heat and tight clothing.',m:'Worse: heat, touch, pressure. Better: cold applications.',u:'insect stings, hives, puffy irritations',c:['skin','cold'],s:['burn','sharp'],o:['sudden'],b:['cold'],w:['warm','touch'],mo:['irr'],t:['none']},
+ {n:'Hepar sulphuris',k:'Very chilly and oversensitive to touch and draughts; splinter-like pains, pus formation, irritable.',m:'Worse: cold air, draughts, touch. Better: warmth, wrapping up.',u:'boils, sore throats, croupy coughs',c:['cold','skin'],s:['sharp'],o:['cold'],b:['warm'],w:['cold','touch'],mo:['irr'],t:['sips']},
+ {n:'Chamomilla',k:'Extreme irritability and intolerance of pain; demands things then rejects them; better when carried.',m:'Worse: night, anger, heat. Better: being carried, gentle motion.',u:'teething, colic, earache with irritability',c:['digest','cold','head'],s:['cramp','sharp'],o:['sudden'],b:['move'],w:['night','warm'],mo:['irr'],t:['high']},
+ {n:'Lycopodium',k:'Bloating and fullness after a few bites, gas; worse late afternoon; lacks confidence but bossy at home.',m:'Worse: 4 to 8pm, tight clothes, cold food. Better: warm drinks, motion.',u:'bloating and indigestion',c:['digest','head'],s:['cramp'],o:['food','gradual'],b:['move'],w:['warm'],mo:['anx','alone'],t:['sips']},
+ {n:'Natrum muriaticum',k:'Reserved, holds grief in, dislikes consolation; craves salt; sun headaches; cold sores.',m:'Worse: sun, heat, 10am, consolation. Better: open air, cool, fasting.',u:'headaches, cold sores, silent grief',c:['head','emotion'],s:['throb','dull'],o:['emotion'],b:['cold','rest'],w:['warm','company'],mo:['alone'],t:['high']}
+];
+const X={
+'Aconitum napellus':{q:'Did it start within hours of cold dry wind or a fright? Marked fear, even of death? Skin hot and dry, pulse full?',d:'Belladonna: also sudden, but throbbing, red-faced and thirstless where Aconite is fearful and thirsty. Gelsemium: slower onset, weakness, no anxiety.'},
+'Belladonna':{q:'Intense heat with red face and dilated pupils, cold extremities? Photophobia, worse for jarring?',d:'Aconitum: anxiety and thirst rather than throbbing and thirstlessness. Bryonia: worse motion but slower onset, dry and thirsty.'},
+'Bryonia alba':{q:'Thirst for large drinks at long intervals, dry lips, and aversion to any motion?',d:'Belladonna: sudden, hot and throbbing. Rhus tox: better for motion, the opposite modality. Gelsemium: drowsy and thirstless.'},
+'Gelsemium sempervirens':{q:'Trembling, heavy eyelids, chills up the spine, no thirst, wants to be left alone but not irritable? Ailments from anticipation?',d:'Bryonia: thirsty, irritable, worse motion. Eupatorium perfoliatum: bone-breaking pains with thirst and restlessness.'},
+'Nux vomica':{q:'Oversensitive to noise, light and odours? Ineffectual urging? History of stimulants, rich food or sedentary overwork?',d:'Pulsatilla: mild, weepy, better open air, thirstless. Lycopodium: bloating, right-sided, worse 4 to 8pm. Arsenicum: anxious and burning rather than irritable.'},
+'Pulsatilla':{q:'Changeable, wandering symptoms with bland thick discharge, desire for open air and sympathy?',d:'Nux vomica: irritable and chilly. Natrum mur: reserved, worse for consolation. Both differ in mood and in comfort-seeking.'},
+'Arsenicum album':{q:'Restlessness with prostration, anxiety about health, burning relieved by heat, fastidiousness, aggravation around midnight?',d:'Veratrum album: cold sweat and collapse, craves cold drinks. Nux vomica: irritable, ineffectual stool. Phosphorus: better cold drinks, vomits when warm.'},
+'Allium cepa':{q:'Do the nasal discharges burn the lip while the eye discharge is bland?',d:'Euphrasia: reversed, bland nose and acrid eyes. Arsenicum: burning discharge with anxiety and chilliness.'},
+'Rhus toxicodendron':{q:'Stiffness worst on first movement and after rest, easing with continued motion? Restless tossing? Worse in damp weather?',d:'Bryonia: worse any motion, better rest. Arnica: bruised soreness, wants to be left alone. Ruta: tendons and periosteum after strain.'},
+'Arnica montana':{q:'History of blunt trauma or overexertion? Fear of being touched or approached? Bed feels too hard?',d:'Rhus tox: better continued motion. Bellis perennis: deeper tissue trauma. Ruta: tendons and periosteum.'},
+'Ignatia amara':{q:'Sighing, globus, paradoxical symptoms (pain eased by pressure, throat better swallowing solids)? Recent grief or disappointment?',d:'Natrum mur: silent, long-held grief, worse consolation. Pulsatilla: weeps openly and wants consolation. Staphysagria: suppressed indignation.'},
+'Apis mellifica':{q:'Oedematous, pale-rosy, shiny swelling with stinging pain, relieved by cold, worse heat and touch, thirstless?',d:'Urtica urens: stinging hives with little swelling. Cantharis: intense raw burning. Ledum: puncture wounds better for cold.'},
+'Hepar sulphuris':{q:'Extremely sensitive to cold air and touch, sour smell, splinter pains, quick irritability, tendency to suppuration?',d:'Belladonna: early hot throbbing inflammation. Silicea: slow suppuration, lacks grit. Mercurius: offensive sweat, salivation.'},
+'Chamomilla':{q:'Pain seems unbearable? One cheek red, one pale? Quieted only by being carried?',d:'Nux vomica: adult irritability with chilliness and stimulants. Belladonna: sudden hot throbbing without anger. Cina: irritable child with worms.'},
+'Lycopodium':{q:'Early satiety, bloating with flatulence, right-sided complaints, worse 4 to 8pm, desire for sweets and warm drinks?',d:'Carbo vegetabilis: air hunger and coldness. Nux vomica: irritable, constipated, stimulants. China: bloating after fruit, debility from fluid loss.'},
+'Natrum muriaticum':{q:'Reserved, dislikes consolation, craves salt, worse sun and around 10am, history of long-held grief?',d:'Ignatia: acute, labile grief with sighing. Sepia: indifference to family, chronic. Pulsatilla: open, weepy, consolable.'}
+};
+AR.forEach(r=>Object.assign(r,X[r.n]));
+
+const CSTEPS=[
+ {id:'c',t:'What is the main chronic complaint?',o:[O('skin','Skin'),O('digest','Digestive'),O('resp','Respiratory or allergic'),O('joints','Joints and musculoskeletal'),O('head','Headache or migraine'),O('gyn','Hormonal or gynaecological'),O('fatigue','Fatigue or low vitality'),O('emotion','Emotional or sleep')]},
+ {id:'ca',t:'Is there a causation or turning point?',o:[O('grief','Grief or emotional shock'),O('suppress','Suppression (eruption, discharge, emotion)'),O('vacc','Since vaccination or a course of drugs'),O('illness','Never well since an illness'),O('overwork','Overwork or long strain'),O('injury','Injury'),O('none','No clear cause')]},
+ {id:'th',t:'What is the thermal state?',o:[O('chilly','Chilly, dislikes cold'),O('hot','Hot, dislikes heat'),O('var','Variable or unclear')]},
+ {id:'t',t:'What is the thirst like?',o:[O('high','Thirsty for large drinks'),O('sips','Thirsty for small sips'),O('none','Thirstless')]},
+ {id:'de',multi:1,t:'Food desires?',h:'Select all that apply, or skip if none reported.',o:[O('sweets','Sweets'),O('salt','Salt'),O('fat','Fat or rich food'),O('sour','Sour or acid'),O('spicy','Spicy'),O('eggs','Eggs'),O('cold','Cold food or drinks')]},
+ {id:'av',multi:1,t:'Food aversions?',h:'Select all that apply, or skip if none reported.',o:[O('fat','Fat'),O('milk','Milk'),O('meat','Meat')]},
+ {id:'mo',multi:1,t:'What is the mental and emotional picture?',h:'Select all that apply.',o:[O('anx','Anxious or fearful'),O('weep','Weeps easily'),O('irr','Irritable or angry'),O('indiff','Indifferent or apathetic'),O('reserved','Reserved, closed, dislikes consolation'),O('fastid','Fastidious or perfectionist'),O('noconf','Lacks confidence'),O('dom','Dominating or bossy'),O('company','Wants company and sympathy'),O('alone','Wants to be alone')]},
+ {id:'ti',multi:1,t:'Time aggravation?',h:'Select all that apply, or skip if none reported.',o:[O('morning','Morning'),O('11am','Around 10 to 11am'),O('pm','4 to 8pm'),O('evening','Evening or night'),O('midnight','Midnight to 3am')]},
+ {id:'g',multi:1,t:'General modalities?',h:'Select all that apply, or skip if none reported.',o:[O('wheat','Worse heat'),O('wcold','Worse cold'),O('wdamp','Worse damp'),O('wsun','Worse sun'),O('bair','Better open air'),O('bmove','Better movement'),O('wmove','Worse exertion')]},
+ {id:'sl',t:'How is sleep?',o:[O('thoughts','Falls asleep late from racing thoughts'),O('early','Wakes between 1 and 4am'),O('unref','Unrefreshed on waking'),O('daysleepy','Sleepy by day'),O('good','Sleeps well')]},
+ {id:'sw',multi:1,t:'Sweat?',h:'Select all that apply, or skip if none reported.',o:[O('head','Head or neck'),O('offensive','Offensive'),O('feet','Feet'),O('night','Night'),O('scanty','Scanty or absent')]},
+ {id:'sd',t:'Side affected?',o:[O('right','Right'),O('left','Left'),O('none','No side preference')]}
+];
+const CW={c:[ 'c',1,'Complaint'],ca:['ca',3,'Causation'],th:['th',3,'Thermal state'],t:['t',2,'Thirst'],de:['de',3,'Desires'],av:['av',2,'Aversions'],mo:['mo',3,'Mind'],ti:['ti',2,'Time aggravation'],g:['g',2,'General modalities'],sl:['sl',1,'Sleep'],sw:['sw',1,'Sweat'],sd:['sd',1,'Side']};
+CSTEPS.forEach(s=>{const w=CW[s.id];s.k=w[0];s.w=w[1];s.sec=w[2]});
+const AW={c:['c',3,'Complaint'],s:['s',2,'Sensation'],o:['o',2,'Causation / onset'],b:['b',1,'Ameliorated by'],w:['w',1,'Aggravated by'],m:['mo',2,'Mind'],t:['t',1,'Thirst']};
+ASTEPS.forEach(s=>{const w=AW[s.id];s.k=w[0];s.w=w[1];s.sec=w[2]});
+const CR=[
+ {n:'Sulphur',k:'Hot, untidy and philosophical; burning, itching skin worse for washing and the heat of the bed; standing is intolerable; relapsing complaints; sinking at 11am.',m:'Worse: heat, washing, standing, 11am. Better: dry warm weather, open air.',u:'chronic skin conditions, recurrent complaints, sluggish reaction',q:'Burning soles at night, itching worse in bed, dislike of washing, hunger at 11am? History of suppressed eruptions?',d:'Calcarea carbonica: chilly and damp-sweaty where Sulphur is hot. Lycopodium: right-sided digestive picture with anticipatory anxiety. Psorinum: chilly, despairing, offensive discharges.',c:['skin','digest'],ca:['suppress'],th:['hot'],t:['high'],de:['sweets','fat','spicy'],av:[],mo:['irr','indiff'],ti:['11am'],g:['wheat'],sl:['daysleepy'],sw:['offensive','feet'],sd:['left']},
+ {n:'Calcarea carbonica',k:'Chilly, slow to react and easily exhausted; sweat of the head and neck at night, cold damp feet; anxious, overworked; craves eggs and sweets.',m:'Worse: cold, damp, exertion. Better: dry warm weather.',u:'slow-developing complaints in chilly, easily fatigued people; joints, glands, growth',q:'Head sweats at night wetting the pillow, cold clammy feet, exhaustion from slight exertion, fear of illness or losing reason?',d:'Silicea: thinner, more sensitive, lacks grit. Sulphur: hot where Calcarea is chilly. Pulsatilla: weepy, warm-blooded, thirstless.',c:['joints','fatigue','digest'],ca:['overwork','illness'],th:['chilly'],t:['high'],de:['sweets','eggs'],av:['meat','milk'],mo:['anx','noconf','fastid'],ti:['evening'],g:['wcold','wdamp','wmove'],sl:['thoughts','unref'],sw:['head','night'],sd:['right']},
+ {n:'Sepia',k:'Indifferent to family and those once loved; irritable, weeps and resents consolation; dragging-down sensations; better for vigorous exercise; hormonal complaints.',m:'Worse: cold, evening, before menses, sitting still. Better: vigorous exercise, warmth.',u:'hormonal and pelvic complaints, exhaustion with indifference',q:'Bearing-down or prolapse sensation, worse before menses, aversion to family or sex, relief from brisk exercise?',d:'Natrum muriaticum: reserved and worse for consolation and sun. Pulsatilla: weepy but craves sympathy. Ignatia: acute, sighing and labile.',c:['gyn','fatigue','skin'],ca:['overwork'],th:['chilly'],t:['none'],de:['sour','spicy'],av:['milk','meat'],mo:['indiff','irr','alone'],ti:['evening'],g:['bmove','wcold'],sl:['unref'],sw:['offensive'],sd:['left']},
+ {n:'Silicea',k:'Chilly, refined and sensitive; lacks grit and confidence yet obstinate under pressure; offensive foot sweat; slow suppuration; ailments since vaccination.',m:'Worse: cold, draughts. Better: warmth, wrapping the head.',u:'slow-healing suppurative or skin complaints, poor resistance',q:'Suppuration that will not heal or expels splinters slowly, offensive foot sweat, chilly with a cold head?',d:'Calcarea carbonica: stouter and more phlegmatic. Hepar sulph: irritable and touch-sensitive with quick suppuration. Thuja: vaccinosis with fixed ideas.',c:['fatigue','skin','resp'],ca:['vacc','illness'],th:['chilly'],t:['none'],de:['cold'],av:['milk','meat'],mo:['noconf','fastid'],ti:['morning'],g:['wcold','wdamp'],sl:['thoughts'],sw:['head','feet','offensive'],sd:['right']},
+ {n:'Lycopodium',k:'Lack of confidence covered by bossiness; anticipatory anxiety; fullness after a few bites, bloating; right-sided; craves sweets and warm drinks.',m:'Worse: 4 to 8pm, heat, tight clothing. Better: open air, warm drinks, motion.',u:'digestive and hepatic complaints, performance anxiety',q:'Early satiety, bloating eased by passing wind, right to left progression, stage fright yet domineering at home?',d:'Nux vomica: irritable and chilly, constipated from stimulants. Carbo vegetabilis: air hunger and coldness. Sulphur: hot, untidy, skin-prone.',c:['digest','resp','head'],ca:['overwork'],th:['hot'],t:['sips'],de:['sweets'],av:[],mo:['noconf','dom','anx'],ti:['pm'],g:['wheat','bair'],sl:['early'],sw:[],sd:['right']},
+ {n:'Natrum muriaticum',k:'Reserved; holds grief in and dislikes consolation; craves salt; sun headaches; dryness; cold sores.',m:'Worse: sun, heat, 10 to 11am, consolation. Better: open air, cool bathing, fasting.',u:'long-held grief, headaches, skin and menstrual complaints',q:'Grief never voiced, salt craving, dislike of being consoled, headaches from sun, dry mucous membranes?',d:'Ignatia: acute, labile grief. Sepia: indifferent and hormonal. Pulsatilla: open, weepy, consolable.',c:['head','skin','gyn','emotion'],ca:['grief'],th:['hot'],t:['high'],de:['salt'],av:['fat'],mo:['reserved','alone'],ti:['11am'],g:['wsun','wheat','bair'],sl:['unref'],sw:[],sd:[]},
+ {n:'Pulsatilla',k:'Mild, yielding, weepy and consolable; changeable symptoms; thirstless; worse in warm stuffy rooms and from fatty food; hormonal transitions.',m:'Worse: warmth, stuffy rooms, evening, rich food. Better: open air, gentle movement, consolation.',u:'changeable complaints at puberty, pregnancy or menopause; recurrent catarrh',q:'Symptoms wander and change, weeping while telling the story, wants sympathy and open windows, no thirst?',d:'Sepia: indifferent and chilly. Natrum muriaticum: reserved. Nux vomica: irritable and chilly.',c:['gyn','resp','digest'],ca:['illness'],th:['hot'],t:['none'],de:['fat','sweets'],av:['fat'],mo:['weep','company'],ti:['evening'],g:['wheat','bair','bmove'],sl:['thoughts'],sw:[],sd:['right']},
+ {n:'Phosphorus',k:'Open, sympathetic and easily frightened; craves cold drinks; bleeds easily; burning between the shoulder blades; worse lying on the left; fear of thunderstorms.',m:'Worse: evening, cold, lying on the left, thunderstorms. Better: cold drinks, sleep, being rubbed.',u:'chest and bleeding tendencies, exhaustion with fears',q:'Craves ice-cold drinks, vomited when warm? Fear of thunderstorms and being alone? Burning between the shoulder blades?',d:'Arsenicum: anxious, fastidious, sips of warm drinks. Pulsatilla: yielding and thirstless. Sulphur: hot and untidy.',c:['resp','fatigue','digest'],ca:['overwork'],th:['hot'],t:['high'],de:['cold','salt'],av:[],mo:['anx','company'],ti:['evening'],g:['wcold'],sl:['unref'],sw:['night'],sd:['left']},
+ {n:'Arsenicum album',k:'Anxious, restless and fastidious; fear of death and poverty; burning pains eased by warmth; small sips; prostration; worse 1 to 3am.',m:'Worse: midnight to 3am, cold, cold drinks. Better: warmth, warm drinks.',u:'chronic digestive, skin and respiratory complaints with anxiety and prostration',q:'Restless anxiety about health with exhaustion, burning relieved by warmth, small frequent sips, fastidious tidiness?',d:'Phosphorus: open and sympathetic, wants cold drinks. Nux vomica: irritable and driven. Sulphur: hot and untidy.',c:['digest','skin','resp'],ca:['illness'],th:['chilly'],t:['sips'],de:['sour','fat'],av:[],mo:['anx','fastid'],ti:['midnight'],g:['wcold'],sl:['early'],sw:['night'],sd:['right']},
+ {n:'Nux vomica',k:'Irritable, ambitious and oversensitive; stimulant use and sedentary overwork; constipation with ineffectual urging; wakes at 3 to 4am; worse in the morning.',m:'Worse: morning, cold, noise, stimulants. Better: evening, warmth, rest.',u:'digestive and nervous complaints from overwork and stimulants',q:'Coffee, alcohol or rich food? Ineffectual urging? Wakes 3 to 4am then sleeps late? Irritable when interrupted?',d:'Lycopodium: bloated and unconfident. Sulphur: hot and untidy. Arsenicum: anxious rather than irritable.',c:['digest','head'],ca:['overwork'],th:['chilly'],t:['high'],de:['fat','spicy'],av:[],mo:['irr','fastid'],ti:['morning'],g:['wcold'],sl:['early'],sw:[],sd:[]},
+ {n:'Thuja occidentalis',k:'Fixed ideas; secretive; warts and skin growths; ailments since vaccination or suppressed discharges; sweat on uncovered parts.',m:'Worse: damp cold, night, 3am. Better: warmth.',u:'skin growths and complaints since vaccination',q:'Warts or fixed ideas? Secretive? Sweat on uncovered parts? Complaints dating from vaccination or suppression?',d:'Silicea: vaccine-related but lacks grit. Sulphur: hot with itchy skin. Causticum: paralytic weakness with grief.',c:['skin','gyn'],ca:['vacc','suppress'],th:['chilly'],t:['none'],de:[],av:[],mo:['reserved','fastid'],ti:['midnight'],g:['wcold','wdamp'],sl:['early'],sw:['offensive'],sd:['left']},
+ {n:'Graphites',k:'Chilly, overweight and slow; oozing sticky honey-like eruptions; cracks in the skin, notably behind the ears; constipation; timid and indecisive.',m:'Worse: cold, night, menses. Better: wrapping up.',u:'oozing eczema, cracked skin, constipation',q:'Sticky honey-like discharge from eruptions, skin cracks behind the ears or on fingertips, obesity with chilliness, timidity?',d:'Sulphur: hot with dry itching. Calcarea carbonica: sweaty and chilly. Silicea: thin, chilly, suppurating.',c:['skin','digest','gyn'],ca:[],th:['chilly'],t:['none'],de:['sweets'],av:[],mo:['noconf'],ti:['evening'],g:['wcold'],sl:['unref'],sw:['offensive'],sd:['left']}
+];
+
+// ---- ailment detail steps (shared) ----
+const LOCS={
+ head:[O('forehead','Forehead or over the eyes'),O('temples','Temples'),O('occiput','Back of head or neck'),O('vertex','Vertex or whole head'),O('oneside','One side of the head')],
+ cold:[O('nose','Nose or sinuses'),O('throat','Throat'),O('chest','Chest or bronchial'),O('ears','Ears'),O('eyes','Eyes')],
+ resp:[O('nose','Nose or sinuses'),O('throat','Throat'),O('chest','Chest or bronchial'),O('eyes','Eyes')],
+ digest:[O('upper','Upper abdomen or stomach'),O('lower','Lower abdomen or bowel'),O('whole','Whole abdomen'),O('oes','Oesophagus or chest burning')],
+ fever:[O('whole','Whole body'),O('head','Head and face'),O('limbs','Limbs and back'),O('throat','Throat and chest')],
+ injury:[O('head','Head'),O('limbs','Limbs or joints'),O('trunk','Back or trunk'),O('soft','Soft tissue only')],
+ joints:[O('back','Back or neck'),O('hipknee','Hip or knee'),O('upper','Shoulder, wrist or hand'),O('many','Multiple joints')],
+ skin:[O('face','Face or scalp'),O('hands','Hands or feet'),O('trunk','Trunk or flexures'),O('wide','Widespread')],
+ gyn:[O('uterus','Uterus or menstrual'),O('breast','Breasts'),O('pelvic','Pelvic or urinary'),O('hormonal','General or hormonal')],
+ fatigue:[O('general','General'),O('mental','Mental'),O('muscular','Muscular')],
+ emotion:[O('mind','Mind and emotions'),O('sleep','Sleep'),O('nerves','Nervous system')],
+ default:[O('local','Localised'),O('general','General')]
+};
+const S_LOC={id:'loc',t:'Where is the complaint located?',h:'Recorded in the case picture; not scored.',o:()=>LOCS[(A.c||[])[0]]||LOCS.default,k:'loc',w:0,sec:'Location (recorded)'};
+const S_SD={id:'sd',t:'Which side is affected?',o:[O('right','Right'),O('left','Left'),O('none','Both, central or no preference')],k:'sd',w:1,sec:'Side'};
+const S_SEV={id:'sev',t:'How severe is it?',h:'Recorded in the case picture; not scored.',o:[O('mild','Mild'),O('moderate','Moderate'),O('severe','Severe'),O('intense','Intense or unbearable')],k:'sev',w:0,sec:'Severity (recorded)'};
+const S_DUR={id:'dur',t:'Duration and course?',h:'Recorded in the case picture; not scored.',o:[O('under1','Under a year'),O('steady','Several years, steady'),O('recur','Years, recurrent with remissions'),O('prog','Progressive, worsening over time'),O('alt','Alternates with another complaint')],k:'dur',w:0,sec:'Duration and course (recorded)'};
+const S_CCA={id:'cc',multi:1,t:'Any discharge or accompanying symptoms?',h:'Select all that apply, or skip if none reported.',o:[O('acrid','Watery, acrid discharge'),O('bland','Thick, bland yellow-green discharge'),O('dryness','Dryness of mouth or mucosa'),O('flushed','Flushed, hot face'),O('photophobia','Sensitive to light or noise'),O('swelling','Swelling or puffiness'),O('nausea','Nausea or retching'),O('chills','Chills or trembling'),O('sweating','Sweating')],k:'cc',w:2,sec:'Accompanying symptoms'};
+const S_CCC={id:'cc',multi:1,t:'Any discharge or accompanying symptoms?',h:'Select all that apply, or skip if none reported.',o:[O('acrid','Watery, acrid discharge'),O('bland','Thick, bland yellow-green discharge'),O('offensive','Offensive discharge'),O('oozing','Sticky, oozing or cracked skin'),O('dryness','Dryness of mouth or mucosa'),O('swelling','Swelling or puffiness'),O('nausea','Nausea or retching'),O('sweating','Sweating')],k:'cc',w:2,sec:'Accompanying symptoms'};
+const S_SCH=Object.assign({},ASTEPS.find(x=>x.id==='s'),{w:1});
+ASTEPS.splice(2,0,S_LOC,S_SD,S_SEV,S_CCA);
+CSTEPS.splice(CSTEPS.findIndex(x=>x.id==='sd'),1);
+CSTEPS.splice(2,0,S_SCH,S_LOC,S_SD,S_CCC,S_DUR);
+const T=(map,fld,arr)=>arr.forEach(r=>{r[fld]=map[r.n]||[]});
+T({'Belladonna':['right'],'Apis mellifica':['right'],'Lycopodium':['right']},'sd',AR);
+T({'Aconitum napellus':['dryness','chills'],'Belladonna':['flushed','photophobia','dryness'],'Bryonia alba':['dryness'],'Gelsemium sempervirens':['chills'],'Nux vomica':['nausea','photophobia','chills'],'Pulsatilla':['bland'],'Arsenicum album':['acrid','nausea','sweating'],'Allium cepa':['acrid'],'Apis mellifica':['swelling'],'Hepar sulphuris':['sweating'],'Chamomilla':['flushed'],'Lycopodium':['nausea'],'Natrum muriaticum':['dryness']},'cc',AR);
+T({'Sulphur':['burn'],'Calcarea carbonica':['dull'],'Sepia':['dull'],'Silicea':['sharp'],'Lycopodium':['cramp'],'Natrum muriaticum':['throb','dull'],'Pulsatilla':['dull','cramp'],'Phosphorus':['burn'],'Arsenicum album':['burn'],'Nux vomica':['cramp','sharp'],'Thuja occidentalis':['sharp'],'Graphites':['burn']},'s',CR);
+T({'Sulphur':['offensive'],'Calcarea carbonica':['sweating'],'Sepia':['bland'],'Silicea':['offensive'],'Lycopodium':['nausea'],'Natrum muriaticum':['dryness'],'Pulsatilla':['bland'],'Arsenicum album':['acrid','nausea'],'Nux vomica':['nausea'],'Thuja occidentalis':['offensive'],'Graphites':['oozing']},'cc',CR);
+
+const S_FH={id:'fh',multi:1,t:'Family history of significant illness?',h:'Select all that apply, or skip if none reported. Recorded; not scored.',o:[O('tb','Tuberculosis or recurrent chest disease'),O('cancer','Cancer'),O('diab','Diabetes'),O('heart','Heart disease or hypertension'),O('allergy','Asthma, allergy or eczema'),O('skin','Skin disease (psoriasis, chronic itching)'),O('arthr','Arthritis or rheumatism'),O('mental','Depression, mental illness or suicide'),O('addict','Alcoholism or addiction'),O('sti','Sexually transmitted infection')],k:'fh',w:0,sec:'Family history (recorded)'};
+CSTEPS.splice(2,0,S_FH);
+const S_MI={id:'mi',multi:1,t:'Which characteristic features does the patient show?',h:'Select all that apply, or skip if none. Recorded; not scored.',o:[O('psoric','Itching skin, relapsing functional complaints, anxious anticipation'),O('sycotic','Warts, polyps or growths, excess discharges, fixed ideas, secretive'),O('syphilitic','Ulceration, destruction or deformity, worse at night, despair'),O('tubercular','Recurrent infections, quick exhaustion, desire for change or travel'),O('cancer','Perfectionism, self-sacrifice, suppressed needs, moles or discoloured skin')],k:'mi',w:0,sec:'Miasmatic features (recorded)'};
+CSTEPS.splice(3,0,S_MI);
+const MIAS={psoric:'psora: functional disturbance, itching, relapse, hope and anxiety',sycotic:'sycosis: overgrowth, excess, fixed ideas, secrecy',syphilitic:'syphilis: destruction, ulceration, night aggravation, despair',tubercular:'tubercular: recurrent infection, exhaustion, restlessness, desire for change',cancer:'cancer: perfectionism, self-sacrifice, suppression, strong sense of duty'};
+
+const FHM={tb:['tubercular'],cancer:['cancer'],diab:['sycotic','tubercular'],heart:['sycotic','syphilitic'],allergy:['psoric','tubercular'],skin:['psoric'],arthr:['sycotic','psoric'],mental:['syphilitic'],addict:['syphilitic','tubercular'],sti:['sycotic','syphilitic']};
+
+const CFG={
+ acute:{name:'Acute',src:'Allen-style keynotes',steps:ASTEPS,rem:AR,pot:1,
+  method:'Acute mode. Answers are matched against condensed keynote profiles for 16 remedies, written in the style of Allen\u2019s Keynotes. These are my summaries, not text extracted from the book, so do not cite them as Allen.'},
+ chronic:{name:'Chronic',src:'Boger-style generals',steps:CSTEPS,rem:CR,pot:0,
+  method:'Chronic mode. Answers are matched against condensed constitutional profiles for 12 remedies, organised in the style of Boger\u2019s Synoptic Key (modalities, generals and time). These are my summaries, not text extracted from the book, so do not cite them as Boger.'}
+};
+let mode=null,cfg=null,STEPS=[],R=[],i=0,A={},topR=[];
+
+let LOG=[],lastLead=null;
+function clearLog(){LOG=[];lastLead=null;$('ticklog').innerHTML='';$('tickcount').textContent='0'}
+function log(m,kind){
+  LOG.push({m,kind});const bar=$('tickmsg');bar.textContent=m;bar.classList.remove('flash');void bar.offsetWidth;bar.classList.add('flash');
+  const d=document.createElement('div');d.className='tl '+(kind||'');d.textContent=m;const l=$('ticklog');l.appendChild(d);l.scrollTop=l.scrollHeight;$('tickcount').textContent=LOG.length;
+}
+$('tickbar').onclick=()=>{const t=$('tick');t.classList.toggle('open');$('tickbtn').innerHTML='<span id="tickcount">'+LOG.length+'</span> steps '+(t.classList.contains('open')?'&#9660;':'&#9650;');const l=$('ticklog');l.scrollTop=l.scrollHeight};
+const SN={'Aconitum napellus':'Aconite','Bryonia alba':'Bryonia','Gelsemium sempervirens':'Gelsemium','Rhus toxicodendron':'Rhus tox','Arnica montana':'Arnica','Ignatia amara':'Ignatia','Apis mellifica':'Apis','Hepar sulphuris':'Hepar sulph','Natrum muriaticum':'Nat mur','Arsenicum album':'Arsenicum','Calcarea carbonica':'Calc carb','Thuja occidentalis':'Thuja'};
+const short=n=>SN[n]||n;
+const LEV=w=>w>=5?'very high':w>=3?'high':w>=2?'moderate':'light';
+const VOICE={c:'Presenting complaint',s:'Sensation',o:'Onset',ca:'Aetiology',b:'Amelioration',w:'Aggravation',mo:'Mental state',t:'Thirst',th:'Thermal state',de:'Food desires',av:'Food aversions',ti:'Time modality',g:'General modality',sl:'Sleep',sw:'Sweat',sd:'Side',cc:'Concomitants',loc:'Location',sev:'Severity',dur:'Duration and course',fh:'Family history',mi:'Miasmatic features'};
+const VERB={c:'Remedies associated with this complaint',s:'Remedies characterised by this sensation',o:'Remedies with this onset',ca:'Remedies with this causation',b:'Remedies ameliorated by this',w:'Remedies aggravated by this',mo:'The mental picture fits',t:'The thirst picture fits',th:'The thermal picture fits',de:'Remedies with this desire',av:'Remedies with this aversion',ti:'Remedies with this time modality',g:'Remedies with this general modality',sl:'The sleep picture fits',sw:'The sweat picture fits',sd:'Remedies with this side affinity',cc:'Remedies with these concomitants'};
+const nm=l=>l.length>4?l.slice(0,4).join(', ')+' and '+(l.length-4)+' more':l.join(', ');
+function logAnswer(s){
+  const a=A[s.id]||[],n=i+1,v=VOICE[s.k]||s.sec;
+  if(!a.length){log('Q'+n+' '+v+': not reported, so it does not influence the choice.','skip');return}
+  const ans=a.map(k=>lab(s,k)).join(' / ');
+  if(!s.w){log('Q'+n+' '+v+': '+ans+'. Noted for the case record, not used to rank remedies.','rec');return}
+  const hit=R.filter(r=>(r[s.k]||[]).some(x=>a.includes(x))).map(r=>short(r.n));
+  let m='Q'+n+' '+v+': '+ans+'. Importance in this method: '+LEV(s.w)+'. ';
+  m+=hit.length?(VERB[s.k]||'Matching remedies')+': '+nm(hit)+'. ':'None of the remedy pictures here carry this, so it does not separate them. ';
+  if(s.k==='c')m+='Location choices now follow the '+lab(s,a[0]).toLowerCase()+'. ';
+  const all=score(),top=all[0];
+  if(top.pct>0){
+    const lvl=all.filter(x=>x.pct===top.pct),t3=all.slice(0,3).map(x=>short(x.r.n)+' '+x.pct+'%').join(', ');
+    if(lvl.length>1){const ln=lvl.map(x=>short(x.r.n));m+=(ln.length>3?ln.length+' remedies':ln.length===2?ln[0]+' and '+ln[1]:ln.slice(0,-1).join(', ')+' and '+ln[ln.length-1])+' are level. ';lastLead=null}
+    else{m+=(lastLead&&lastLead!==top.r.n?short(top.r.n)+' has now overtaken '+short(lastLead)+'. ':short(top.r.n)+' leads. ');lastLead=top.r.n}
+    m+='Closest pictures so far: '+t3+'.';
+  }else m+='No remedy has come forward yet.';
+  log(m,'ans');
+}
+const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const METHS={
+ balanced:{name:'Balanced',desc:'Default weighting across complaint, symptoms, modalities and mind.',w:{acute:{},chronic:{}},first:{acute:[],chronic:[]}},
+ aetiology:{name:'Aetiology (causation first)',desc:'Chooses on the cause (ailments from...) first. Causation is asked second and given the most importance.',w:{acute:{o:6},chronic:{ca:7}},first:{acute:['c','o'],chronic:['c','ca']}},
+ kent:{name:'Kentian hierarchy',desc:'Mental generals first, then physical generals, with particulars given the least importance.',w:{acute:{m:5,t:2,b:2,w:2,c:1,s:1,cc:1},chronic:{mo:6,th:3,de:3,av:3,t:3,g:3,ti:2,sl:2,sw:2,ca:2,c:1,s:1,cc:1}},first:{acute:['c','m'],chronic:['c','mo']}},
+ boen:{name:'Boenninghausen (modalities)',desc:'Modalities and concomitants carry the most importance. Location is recorded but not scored, so this is a partial version of the complete symptom.',w:{acute:{b:4,w:4,s:3,cc:3,c:1,o:1,m:1},chronic:{g:4,ti:4,s:3,cc:3,c:1,mo:2,de:2,th:2}},first:{acute:[],chronic:[]}},
+ keynote:{name:'Keynote (Allen)',desc:'Concrete keynote-level symptoms (sensation, accompanying symptoms, modalities) carry more importance than the name of the complaint.',w:{acute:{s:4,cc:4,b:3,w:3,c:1,o:2,m:2,t:2},chronic:{s:4,cc:4,g:3,ti:3,c:1,mo:2,de:2}},first:{acute:[],chronic:[]}}
+};
+let methId=LS.get('mm_method');if(!METHS[methId])methId='balanced';
+function applyMethod(steps,mk){
+  const M=METHS[methId],ov=M.w[mk]||{};
+  const a=steps.map(s=>Object.assign({},s,ov[s.id]!==undefined?{w:ov[s.id]}:{}));
+  const head=(M.first[mk]||[]).map(id=>a.find(s=>s.id===id)).filter(Boolean);
+  return head.concat(a.filter(s=>!head.includes(s)));
+}
+
+const OPTS=s=>typeof s.o==='function'?s.o():s.o;
+const lab=(st,k)=>{const o=OPTS(st).find(x=>x.k===k);return o?o.l:k};
+function setMode(k){mode=k;cfg=CFG[k];STEPS=applyMethod(cfg.steps,k);R=cfg.rem;i=0;A={};clearLog();
+  const M=METHS[methId],fo=(M.first[k]||[]).map(id=>STEPS.find(x=>x.id===id)).filter(Boolean).map(x=>x.sec);
+  log(cfg.name+' case opened: '+STEPS.length+' questions, '+R.length+' remedy pictures drawn from '+cfg.src+'.','sys');
+  const grp={};STEPS.filter(x=>x.w).forEach(x=>{(grp[LEV(x.w)]=grp[LEV(x.w)]||[]).push(x.sec)});
+  log('Method: '+M.name+'. '+M.desc+' '+(fo.length>1?'Questions are ordered '+fo.join(', then ')+' first. ':'')+'Importance given: '+['very high','high','moderate','light'].filter(l=>grp[l]).map(l=>l+' for '+grp[l].join(', ')).join('; ')+'.','sys');
+  render()}
+function chooser(msg){
+  clearLog();log(msg||('Ready. Method: '+METHS[methId].name+' ('+(LS.get('mm_method')?'remembered from last time':'default')+').'),'sys');
+  $('bar').style.width='0';const m=$('main');
+  m.innerHTML='<div class="q">Methodology (remembered)</div><select id="msel"></select><p class="hint" id="mdesc" style="margin:6px 0 16px;font-size:12.5px"></p><h2 style="margin:0 0 10px">What kind of case is this?</h2>';
+  const sel=$('msel');
+  Object.entries(METHS).forEach(([id,M])=>{const o=document.createElement('option');o.value=id;o.textContent=M.name;if(id===methId)o.selected=true;sel.appendChild(o)});
+  $('mdesc').textContent=METHS[methId].desc;
+  sel.onchange=()=>{methId=sel.value;LS.set('mm_method',methId);$('mdesc').textContent=METHS[methId].desc;log('Method changed to '+METHS[methId].name+' and remembered for next time.','sys')};
+  [['acute','Acute','Recent or sudden onset. Keynote matching in the style of Allen.'],['chronic','Chronic','Long-standing or recurrent. Whole-person picture in the style of Boger.']].forEach(([k,t,d])=>{
+    const b=document.createElement('button');b.className='mode';b.innerHTML='<b></b><span></span>';b.querySelector('b').textContent=t;b.querySelector('span').textContent=d;b.onclick=()=>setMode(k);m.appendChild(b)});
+}
+function render(){
+  if(!mode)return chooser();
+  const s=STEPS[i],sel=A[s.id]||[];
+  $('bar').style.width=(i/STEPS.length*100)+'%';
+  const m=$('main');m.innerHTML='<div class="q"></div><h2></h2><p class="hint"></p><div class="opts"></div><div class="nav"></div>';
+  m.querySelector('.q').textContent=cfg.name+' case: question '+(i+1)+' of '+STEPS.length;
+  m.querySelector('h2').textContent=s.t;m.querySelector('.hint').textContent=s.h||'Choose one.';
+  const box=m.querySelector('.opts');
+  OPTS(s).forEach(o=>{
+    const b=document.createElement('button');b.className='opt'+(sel.includes(o.k)?' sel':'');
+    const d=document.createElement('div');d.textContent=o.l;if(o.s){const sm=document.createElement('small');sm.textContent=o.s;d.appendChild(sm)}
+    b.appendChild(d);
+    b.onclick=()=>{
+      if(!s.multi){A[s.id]=[o.k];if(s.id==='c')delete A.loc;next();return}
+      let a=A[s.id]||[];a=a.includes(o.k)?a.filter(x=>x!==o.k):[...a,o.k];A[s.id]=a;render();
+    };box.appendChild(b);
+  });
+  const nav=m.querySelector('.nav');
+  const bk=document.createElement('button');bk.className='btn g';bk.textContent='Back';bk.onclick=()=>{if(i>0){i--;log('Stepped back to question '+(i+1)+'. Your earlier answers are kept and can be changed.','nav')}else mode=null;render()};nav.appendChild(bk);
+  if(s.multi){const nx=document.createElement('button');nx.className='btn';nx.textContent=sel.length?'Next':'Skip';nx.onclick=next;nav.appendChild(nx)}
+}
+function next(){logAnswer(STEPS[i]);if(++i>=STEPS.length)return results();render()}
+function score(){
+  let max=0;STEPS.forEach(s=>{const n=(A[s.id]||[]).length;if(n)max+=s.w*(s.multi?Math.min(n,2):1)});
+  return R.map(r=>{let sc=0;STEPS.forEach(s=>{const a=A[s.id]||[];let h=a.filter(x=>(r[s.k]||[]).includes(x)).length;if(s.multi)h=Math.min(h,2);sc+=h*s.w});return{r,pct:max?Math.round(sc/max*100):0}}).sort((a,b)=>b.pct-a.pct);
+}
+function P(parent,label,text){const p=document.createElement('p');if(label){const l=document.createElement('span');l.className='lbl';l.textContent=label+' ';p.appendChild(l)}p.appendChild(document.createTextNode(text));parent.appendChild(p);return p}
+function results(){
+  $('bar').style.width='100%';const all=score();topR=all.slice(0,3);
+  const m=$('main');
+  m.innerHTML='<h2></h2><div class="card" id="sum"></div><h2 style="font-size:18px">Ranked remedy fit</h2><div id="cards"></div><div id="aibox"></div><div class="card" id="meth"></div><div class="nav"><button class="btn g" id="rs">Start over</button></div>';
+  m.querySelector('h2').textContent=cfg.name+' case analysis';
+  const sum=$('sum');
+  STEPS.forEach(st=>{const a=A[st.id]||[];if(a.length)P(sum,st.sec+':',a.map(k=>lab(st,k)).join(', '))});
+  P(sum,'Methodology:',METHS[methId].name);
+  const gap=topR[0].pct-topR[1].pct;
+  P(sum,'Reading:',gap<=10?'The top two are within '+gap+' points, so the picture does not yet separate them. Use the confirming questions below before deciding.':'The leading remedy is '+gap+' points clear of the next, but the label reflects fit to the profiles only.');
+  topR.forEach(({r,pct},n)=>{
+    const c=document.createElement('div');c.className='card';
+    const fl=pct>=70?'Strong fit':pct>=45?'Moderate fit':'Weak fit';
+    const h=document.createElement('h3');h.textContent=(n+1)+'. '+r.n;const f=document.createElement('span');f.className='fit';f.textContent=fl+' \u00b7 '+pct+'%';h.appendChild(f);c.appendChild(h);
+    const hit=[],miss=[];
+    STEPS.forEach(st=>{if(!st.w)return;const a=A[st.id]||[];const h1=a.filter(k=>(r[st.k]||[]).includes(k)).map(k=>lab(st,k)),x=a.filter(k=>!(r[st.k]||[]).includes(k)).map(k=>lab(st,k));if(h1.length)hit.push(st.sec+': '+h1.join(' / '));if(x.length)miss.push(st.sec+': '+x.join(' / '))});
+    P(c,'Keynotes:',r.k);P(c,'Modalities:',r.m);
+    P(c,'Matches the case:',hit.length?hit.join('; '):'none of the selected features');
+    P(c,'Not in this remedy profile:',miss.length?miss.join('; ')+'. Weigh these against the remedy before prescribing.':'nothing contradicts the profile.');
+    P(c,'Confirm by asking:',r.q);P(c,'Differentiate from:',r.d);
+    P(c,'Traditional use:',r.u+(cfg.pot?'. Commonly sold as 6C or 30C; potency and repetition are the practitioner decision.':'. Potency, repetition and follow-up are the practitioner decision.'));
+    $('cards').appendChild(c);
+  });
+  P(sum,'Also scoring:',all.slice(3,5).map(x=>x.r.n+' ('+x.pct+'%)').join(', '));
+  if(mode==='chronic'&&((A.fh||[]).length||(A.mi||[]).length)){const cnt={};(A.fh||[]).forEach(k=>(FHM[k]||[]).forEach(x=>cnt[x]=(cnt[x]||0)+1));(A.mi||[]).forEach(x=>cnt[x]=(cnt[x]||0)+1);const ent=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);P(sum,'Miasmatic leaning (five-miasm framework):',ent.map(([x,n])=>x+' ('+n+')').join(', ')+'. Counts combine family history and the features you selected.');if(ent.length){const tp=ent.filter(e=>e[1]===ent[0][1]);P(sum,tp.length>1?'Tied leading pictures:':'Leading picture:',tp.map(e=>MIAS[e[0]]).join('; ')+'. Authors assign conditions to miasms differently, so treat this as a prompt for history-taking and follow-up, not a finding. It is not used in the scoring.')}}
+  const me=$('meth');
+  P(me,'Method and limits:',cfg.method+' Methodology: '+METHS[methId].name+'. '+METHS[methId].desc+' Weights in use: '+STEPS.filter(x=>x.w).map(x=>x.sec+' x'+x.w).join(', ')+'.'+' Fit labels: strong 70% or more, moderate 45 to 69%, weak below 45%. Location, severity, duration and family history are recorded in the case summary and the AI analysis but are not scored, because the profiles do not yet carry regional data. This is symptom-level matching, not full repertorisation of the totality. It does not weigh strange, rare and peculiar symptoms, miasmatic background or the direction of cure, and it covers a small remedy set. Verify every remedy against your own materia medica before prescribing.');
+  if(!cfg.pot)P(me,'Chronic follow-up:','Confirm mental generals, thermal state and food desires against a full case history, and plan review of the response and direction of cure.');
+  $('rs').onclick=()=>{mode=null;A={};i=0;render()};
+  const gp=topR[0].pct-topR[1].pct;
+  log('Case complete. Remedies are ranked by how closely their picture matches what you entered. Closest: '+topR.map(x=>short(x.r.n)).join(', ')+'. '+(gp<=10?'The top two are close, so use the confirming questions to separate them.':short(topR[0].r.n)+' is clearly ahead.'),'rank');
+  addAI();
+}
+async function addAI(){
+  let sample=null;try{sample=await window.claude?.use('sample')}catch(e){}
+  if(!sample)return;
+  const b=document.createElement('button');b.className='btn';b.textContent='\u2728 Full differential analysis with AI';b.style.marginBottom='12px';
+  $('aibox').appendChild(b);
+  b.onclick=async()=>{
+    b.disabled=true;b.textContent='Thinking\u2026';
+    const out=document.createElement('div');out.className='card ai';$('aibox').appendChild(out);
+    const picture=STEPS.map(s=>s.t+' '+(A[s.id]||[]).map(k=>lab(s,k)).join(', ')).join('\n');
+    const prompt=`You are assisting a homeopathy student or practitioner with a ${mode} case, using ${cfg.src} profiles and the ${METHS[methId].name} methodology (${METHS[methId].desc}). Using homeopathic terminology (keynotes, modalities, generals and particulars, aetiology, rubrics${mode==='chronic'?', constitution, miasmatic background, direction of cure':''}), write about 250 words of plain text with no markdown symbols, in four short labelled paragraphs: Rationale for the ranking; Key differentiating features; Two or three follow-up questions to ask the patient; Limitations of this data. Ground the answer in the profiles supplied. Do not diagnose in conventional terms, do not invent quotations or page references, and name standard materia medica only in general terms.\nPatient picture:\n${picture}\nCandidate profiles:\n${topR.map(t=>t.r.n+' ('+t.pct+'%): '+t.r.k+' '+t.r.m).join('\n')}`;
+    try{const r=await sample(prompt,{cache:false,onText:({text})=>{out.textContent=text}});out.textContent=r.text||out.textContent;b.remove()}
+    catch(e){out.textContent=(e&&e.text)||'The AI analysis is unavailable right now.';b.remove()}
+  };
+}
+render();
+</script>
+</body>
+</html>
